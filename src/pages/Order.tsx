@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import AdminNavbar from "../components/AdminNavbar";
 import CountUp from "react-countup";
 
@@ -64,7 +64,7 @@ const Orders = () => {
     });
   }, [orders, search, statusFilter]);
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "Pending":
         return "bg-yellow-400 text-black";
@@ -80,7 +80,7 @@ const Orders = () => {
   };
 
   return (
-    <div className="flex flex-col items-center bg-gray-900 min-h-screen">
+    <div className="bg-gray-900 min-h-screen px-4 sm:px-10">
       <AdminNavbar className="w-full" />
 
       <h1 className="text-3xl font-bold mb-6 mt-10 text-white">Orders</h1>
@@ -158,7 +158,7 @@ const Orders = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="text-center py-6 text-gray-400">
+                <td colSpan={7} className="text-center py-6 text-gray-400">
                   No orders found
                 </td>
               </tr>

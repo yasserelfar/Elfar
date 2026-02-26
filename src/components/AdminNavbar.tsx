@@ -1,16 +1,21 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-const AdminNavbar = ({ className  }) => {
+const AdminNavbar = ({ className }) => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const links = [
-    { name: "Dashboard", path: "/" },
+    { name: "Dashboard", path: "/Dashboard" },
     { name: "Products", path: "/Adminproducts" },
     { name: "Orders", path: "/orders" },
+    { name: "Logout", path: "/login", onClick: () => handleLogout() },
   ];
-
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    sessionStorage.removeItem("user");
+    window.location.href = "/login";
+  };
   return (
     <nav
       className={`${className ? className : ""}   p-4 flex flex-wrap justify-between items-center`}
@@ -50,7 +55,12 @@ const AdminNavbar = ({ className  }) => {
                   ? "bg-blue-500 text-white"
                   : "text-gray-200 hover:bg-gray-700"
               }`}
-              onClick={() => setMobileOpen(false)}
+              onClick={() => {
+                if (link.onClick) {
+                  link.onClick();
+                }
+                setMobileOpen(false);
+              }}
             >
               {link.name}
             </Link>

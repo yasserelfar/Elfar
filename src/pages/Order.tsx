@@ -66,7 +66,7 @@ const Orders = () => {
       </h1>
 
       <div className="overflow-x-auto w-full px-6 sm:px-10 pb-10">
-        <table className="min-w-full bg-gray-800 shadow rounded-lg">
+        <table className="min-w-full bg-gray-800 shadow rounded-lg min-w-full bg-gray-800 shadow rounded-lg">
           <thead>
             <tr className="bg-gray-700 text-white">
               <th className="py-2 px-4 text-left">ID</th>

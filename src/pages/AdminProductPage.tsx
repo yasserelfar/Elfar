@@ -128,7 +128,7 @@ const Products = () => {
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center bg-gray-900 min-h-screen">
       <AdminNavbar className="w-full " />
       <h1 className="text-3xl font-bold mb-6 text-center mt-10 ">Products</h1>
 
@@ -141,20 +141,20 @@ const Products = () => {
 
       {/* Products Table */}
       <div className="overflow-x-auto w-full p-10">
-        <table className="min-w-full  shadow rounded-lg">
-          <thead>
-            <tr className="">
+        <table className="min-w-full bg-gray-800 rounded-3xl">
+          <thead className=" bg-gray-700 rounded-3xl">
+            <tr className=" text-white rounded-3xl">
               <th className="py-2 px-4 text-left">ID</th>
               <th className="py-2 px-4 text-left">Image</th>
               <th className="py-2 px-4 text-left">Name</th>
               <th className="py-2 px-4 text-left">Price</th>
               <th className="py-2 px-4 text-left">Stock</th>
-              <th className="py-2 px-4 text-left">Actions</th>
+              <th className="py-2 px-4 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
             {products.map((p) => (
-              <tr key={p.id} className="border-t">
+              <tr key={p.id} className="border-t border-gray-700 text-white">
                 <td className="py-2 px-4">{p.id}</td>
                 <td className="py-2 px-4">
                   <img
@@ -171,7 +171,7 @@ const Products = () => {
                 <td className="py-2 px-4">
                   <CountUp end={p.stock} duration={1} separator="," />
                 </td>
-                <td className="py-2 px-4 flex gap-2">
+                <td className="py-2 px-4 flex justify-around">
                   <button
                     onClick={() => openModal(p)}
                     className="px-3 py-1 bg-sky-950 text-white rounded shadow hover:shadow-yellow-50"

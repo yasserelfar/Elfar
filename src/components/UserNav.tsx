@@ -5,24 +5,38 @@ import {
   Bars3Icon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const UserNav = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
+  const links = [
+    { name: "Home", to: "/" },
+    { name: "Products", to: "/productPage" },
+    { name: "Contact", to: "#contact", isAnchor: true },
+  ];
 
   return (
-    <header className="bg-gray-800 text-white w-full p-4">
+    <header className="bg-gray-800 text-white w-full p-4 sticky top-0 z-50">
       <nav className="flex items-center justify-between">
         {/* Left links for large screens */}
         <div className="hidden md:flex gap-8">
-          <a href="#" className="hover:text-gray-300">
-            Home
-          </a>
-          <a href="#" className="hover:text-gray-300">
-            Products
-          </a>
-          <a href="#" className="hover:text-gray-300">
-            Contact
-          </a>
+          {links.map((link) =>
+            link.isAnchor ? (
+              <a key={link.name} href={link.to} className="hover:text-gray-300">
+                {link.name}
+              </a>
+            ) : (
+              <Link
+                key={link.name}
+                to={link.to}
+                className="hover:text-gray-300"
+              >
+                {link.name}
+              </Link>
+            ),
+          )}
         </div>
 
         {/* Logo in center for large screens */}
@@ -35,13 +49,12 @@ const UserNav = () => {
         </div>
 
         {/* Right links for large screens */}
-        <div className="hidden md:flex gap-4 items-center">
-          <input
-            type="text"
-            placeholder="Search: نجف , مفاتيح"
-            className="px-2 py-1 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <div className="flex items-center justify-center w-12 h-12 bg-gray-200 rounded-full hover:bg-gray-300 hover:scale-105 transition-transform duration-200 cursor-pointer">
+        <div className=" md:flex gap-4 items-center mx-4 hidden">
+          <span className="text-sm">
+            Welcome,{" "}
+            <span className="font-semibold">{user?.name || "User"}</span>
+          </span>{" "}
+          <div className="hidden flex items-center justify-center w-12 h-12 bg-gray-200 rounded-full md:flex hover:bg-gray-300 hover:scale-105 transition-transform duration-200 cursor-pointer">
             <UserCircleIcon className="w-8 h-8 text-gray-600" />
           </div>
         </div>
@@ -64,28 +77,34 @@ const UserNav = () => {
           isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        {/* Search */}
-        <input
-          type="text"
-          placeholder="Search..."
-          className="px-2 py-1 rounded-md bg-gray-600 text-center text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
         {/* Account */}
+        
         <a href="#" className="hover:text-gray-300 text-center">
           Account
         </a>
 
         {/* Links */}
-        <a href="#" className="hover:text-gray-300 text-center">
-          Home
-        </a>
-        <a href="#" className="hover:text-gray-300 text-center">
-          Products
-        </a>
-        <a href="#" className="hover:text-gray-300 text-center">
-          Contact
-        </a>
+        {links.map((link) =>
+          link.isAnchor ? (
+            <a
+              key={link.name}
+              href={link.to}
+              className="hover:text-gray-300 text-center"
+              onClick={() => setIsOpen(false)}
+            >
+              {link.name}
+            </a>
+          ) : (
+            <Link
+              key={link.name}
+              to={link.to}
+              className="hover:text-gray-300 text-center"
+              onClick={() => setIsOpen(false)}
+            >
+              {link.name}
+            </Link>
+          ),
+        )}
       </div>
     </header>
   );

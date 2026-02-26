@@ -190,7 +190,7 @@ const Products = () => {
                   <td className="py-2 px-4 flex justify-around">
                     <button
                       onClick={() => openModal(p)}
-                      className="px-3 py-1 bg-sky-950 text-white rounded"
+                      className="px-3 py-1 bg-sky-950 text-white rounded shadow hover:shadow-amber-50"
                     >
                       Edit
                     </button>

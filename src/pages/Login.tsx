@@ -14,7 +14,7 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === "admin") {
+      if (user.isAdmin) {
         navigate("/Dashboard");
       } else {
         navigate("/");
@@ -28,7 +28,17 @@ const Login = () => {
     const usersStr = localStorage.getItem("users");
     const users = usersStr
       ? JSON.parse(usersStr)
-      : [{ email: "admin@gmail.com", password: "123456", role: "admin" }];
+      : [
+          {
+            name: "Admin",
+            email: "admin@gmail.com",
+            phone: "",
+            password: "123456",
+            isAdmin: true,
+            isActive: true,
+            createdAt: Date.now(),
+          },
+        ];
 
     const foundUser = users.find(
       (user: User) => user.email === email && user.password === password,
@@ -41,8 +51,8 @@ const Login = () => {
 
     login(foundUser, remember);
 
-    // تحويل حسب الـ role
-    if (foundUser.role === "admin") {
+    // redirect based on isAdmin
+    if (foundUser.isAdmin) {
       navigate("/Dashboard");
     } else {
       navigate("/");

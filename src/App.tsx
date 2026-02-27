@@ -7,11 +7,17 @@ import Register from "./pages/Register";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import Home from "./pages/Home";
 import ProductPage from "./pages/ProductPage";
+import CartPage from "./pages/CartPage";
+import AccountPage from "./pages/AccountPage";
+import EditProfile from "./pages/EditProfile";
 
 function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/account" element={<AccountPage />} />
+        <Route path="/account/edit" element={<EditProfile />} />
+        <Route path="/cart" element={<CartPage />} />
         <Route path="/productPage/" element={<ProductPage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />

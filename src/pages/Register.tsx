@@ -6,6 +6,7 @@ const Register = () => {
   const navigate = useNavigate();
   const { register, login } = useAuth();
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -23,8 +24,11 @@ const Register = () => {
       const newUser = {
         name,
         email,
+        phone,
         password,
-        role: "user" as const,
+        isAdmin: false,
+        isActive: true,
+        createdAt: Date.now(),
       };
 
       register(newUser);
@@ -60,6 +64,16 @@ const Register = () => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-gray-300 mb-2">Phone</label>
+          <input
+            type="tel"
+            className="w-full px-4 py-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
           />
         </div>
 

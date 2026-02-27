@@ -1,10 +1,13 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 
 export interface User {
-  email: string;
-  password: string;
-  role: "admin" | "user";
   name?: string;
+  email: string;
+  phone?: string;
+  password: string;
+  isAdmin: boolean;
+  isActive: boolean;
+  createdAt: number; // timestamp
 }
 
 interface AuthContextType {
@@ -13,6 +16,7 @@ interface AuthContextType {
   login: (user: User, rememberMe: boolean) => void;
   logout: () => void;
   register: (user: User) => void;
+  updateProfile: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,7 +58,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     const usersStr = localStorage.getItem("users");
     const users = usersStr
       ? JSON.parse(usersStr)
-      : [{ email: "admin@gmail.com", password: "123456", role: "admin" }];
+      : [
+          {
+            name: "Admin",
+            email: "admin@gmail.com",
+            phone: "",
+            password: "123456",
+            isAdmin: true,
+            isActive: true,
+            createdAt: Date.now(),
+          },
+        ];
 
     // Check if user already exists
     if (users.some((u: User) => u.email === user.email)) {
@@ -65,9 +79,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     localStorage.setItem("users", JSON.stringify(users));
   };
 
+  const updateProfile = (updatedUser: User) => {
+    setUser(updatedUser);
+    // update persistent storage where the user was stored
+    if (localStorage.getItem("user")) {
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+    }
+    if (sessionStorage.getItem("user")) {
+      sessionStorage.setItem("user", JSON.stringify(updatedUser));
+    }
+
+    // also update users list if present
+    const usersStr = localStorage.getItem("users");
+    if (usersStr) {
+      try {
+        const users = JSON.parse(usersStr) as User[];
+        const idx = users.findIndex((u) => u.email === updatedUser.email);
+        if (idx >= 0) {
+          users[idx] = updatedUser;
+          localStorage.setItem("users", JSON.stringify(users));
+        }
+      } catch {
+        // ignore malformed users
+      }
+    }
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated, login, logout, register }}
+      value={{ user, isAuthenticated, login, logout, register, updateProfile }}
     >
       {children}
     </AuthContext.Provider>

@@ -4,6 +4,7 @@ import {
   UserCircleIcon,
   Bars3Icon,
   XMarkIcon,
+  ShoppingCartIcon,
 } from "@heroicons/react/24/solid";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -15,6 +16,7 @@ const UserNav = () => {
     { name: "Home", to: "/" },
     { name: "Products", to: "/productPage" },
     { name: "Contact", to: "#contact", isAnchor: true },
+    { name: "Cart", to: "/cart" },
   ];
 
   return (
@@ -31,9 +33,12 @@ const UserNav = () => {
               <Link
                 key={link.name}
                 to={link.to}
-                className="hover:text-gray-300"
+                className="hover:text-gray-300 flex items-center gap-2"
               >
                 {link.name}
+                {link.name === "Cart" && (
+                  <ShoppingCartIcon className="w-5 h-5" />
+                )}
               </Link>
             ),
           )}
@@ -54,9 +59,11 @@ const UserNav = () => {
             Welcome,{" "}
             <span className="font-semibold">{user?.name || "User"}</span>
           </span>{" "}
-          <div className="hidden flex items-center justify-center w-12 h-12 bg-gray-200 rounded-full md:flex hover:bg-gray-300 hover:scale-105 transition-transform duration-200 cursor-pointer">
-            <UserCircleIcon className="w-8 h-8 text-gray-600" />
-          </div>
+          <Link to="/account" className="hover:text-gray-300">
+            <div className="hidden flex items-center justify-center w-12 h-12 bg-gray-200 rounded-full md:flex hover:bg-gray-300 hover:scale-105 transition-transform duration-200 cursor-pointer">
+              <UserCircleIcon className="w-8 h-8 text-gray-600" />
+            </div>
+          </Link>
         </div>
 
         {/* Hamburger for mobile */}
@@ -78,7 +85,7 @@ const UserNav = () => {
         }`}
       >
         {/* Account */}
-        
+
         <a href="#" className="hover:text-gray-300 text-center">
           Account
         </a>
@@ -98,9 +105,10 @@ const UserNav = () => {
             <Link
               key={link.name}
               to={link.to}
-              className="hover:text-gray-300 text-center"
+              className="hover:text-gray-300 text-center flex items-center justify-center gap-2"
               onClick={() => setIsOpen(false)}
             >
+              {link.name === "Cart" && <ShoppingCartIcon className="w-5 h-5" />}
               {link.name}
             </Link>
           ),

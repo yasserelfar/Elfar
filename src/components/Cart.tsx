@@ -1,0 +1,121 @@
+import { useContext } from "react";
+import { CartContext } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
+const Cart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error("Cart must be used within CartProvider");
+  }
+  const { cart, addToCart, clearCart, setCart } = context;
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const decreaseQuantity = (id: number) => {
+    setCart(
+      cart
+        .map((item) =>
+          item.id === id ? { ...item, quantity: item.quantity - 1 } : item,
+        )
+        .filter((item) => item.quantity > 0),
+    );
+  };
+
+  const removeItem = (id: number) => {
+    setCart(cart.filter((item) => item.id !== id));
+  };
+
+  const totalPrice = cart.reduce(
+    (total: number, item) => total + item.price * item.quantity,
+    0,
+  );
+
+  const handleCheckout = () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    alert("Order Placed Successfully 🎉");
+    clearCart();
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-white p-8">
+      <h1 className="text-3xl font-bold mb-8">Your Cart 🛒</h1>
+
+      {cart.length === 0 ? (
+        <p className="text-gray-400">Your cart is empty</p>
+      ) : (
+        <>
+          <div className="space-y-6">
+            {cart.map((item) => (
+              <div
+                key={item.id}
+                className="bg-gray-800 p-4 rounded-lg flex items-center justify-between"
+              >
+                {/* Product Info */}
+                <div className="flex items-center gap-4">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-16 h-16 object-cover rounded"
+                  />
+                  <div>
+                    <h2 className="font-semibold">{item.name}</h2>
+                    <p className="text-blue-400">
+                      ${item.price} x {item.quantity}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Controls */}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => decreaseQuantity(item.id)}
+                    className="bg-gray-700 px-3 py-1 rounded"
+                  >
+                    -
+                  </button>
+
+                  <span>{item.quantity}</span>
+
+                  <button
+                    onClick={() => addToCart(item)}
+                    className="bg-gray-700 px-3 py-1 rounded"
+                  >
+                    +
+                  </button>
+
+                  <button
+                    onClick={() => removeItem(item.id)}
+                    className="bg-red-600 px-3 py-1 rounded ml-4"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Total + Checkout */}
+          <div className="mt-10 bg-gray-800 p-6 rounded-lg flex justify-between items-center">
+            <h2 className="text-xl font-bold">
+              Total: <span className="text-green-400">${totalPrice}</span>
+            </h2>
+
+            <button
+              onClick={handleCheckout}
+              className="bg-green-600 hover:bg-green-700 px-6 py-2 rounded font-semibold"
+            >
+              Checkout
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+export default Cart;

@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect, type ReactNode } from "react";
+import * as cartService from "../services/cartService";
 
 interface CartItem {
   id: number;
@@ -17,9 +18,11 @@ interface Product {
 
 interface CartContextType {
   cart: CartItem[];
-  setCart: (cart: CartItem[]) => void;
-  addToCart: (product: Product) => void;
-  clearCart: () => void;
+  addToCart: (product: Product) => Promise<void>;
+  removeFromCart: (id: number) => Promise<void>;
+  updateQuantity: (id: number, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
+  totalPrice: () => number;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -27,43 +30,65 @@ export const CartContext = createContext<CartContextType | undefined>(
   undefined,
 );
 
+// eslint-disable-next-line react-refresh/only-export-components
+
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    const storedCart = localStorage.getItem("guestCart");
-    return storedCart ? JSON.parse(storedCart) : [];
-  });
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [_loading, setLoading] = useState(false);
 
-  // حفظ الكارت دايمًا
   useEffect(() => {
-    localStorage.setItem("guestCart", JSON.stringify(cart));
-  }, [cart]);
-
-  // إضافة منتج
-  const addToCart = (product: Product) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
-
-      if (existing) {
-        return prev.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item,
-        );
+    // load cart from service
+    const load = async () => {
+      setLoading(true);
+      try {
+        const items = await cartService.getCart();
+        setCart(items);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
       }
+    };
+    load();
+  }, []);
 
-      return [...prev, { ...product, quantity: 1 }];
-    });
+  const syncCart = (items: CartItem[]) => {
+    setCart(items);
   };
 
-  // مسح الكارت
-  const clearCart = () => {
-    setCart([]);
-    localStorage.removeItem("guestCart");
+  const addToCart = async (product: Product) => {
+    const items = await cartService.addToCart(product);
+    syncCart(items);
   };
-  
+
+  const removeFromCart = async (id: number) => {
+    const items = await cartService.removeFromCart(id);
+    syncCart(items);
+  };
+
+  const updateQuantity = async (id: number, quantity: number) => {
+    const items = await cartService.updateQuantity(id, quantity);
+    syncCart(items);
+  };
+
+  const clearCart = async () => {
+    const items = await cartService.clearCart();
+    syncCart(items);
+  };
+
+  const totalPrice = () => cartService.totalPrice(cart);
 
   return (
-    <CartContext.Provider value={{ cart, setCart, addToCart, clearCart }}>
+    <CartContext.Provider
+      value={{
+        cart,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        totalPrice,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

@@ -1,12 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth, type User } from "../context/AuthContext";
+import { useAuth } from "../hooks";
+import { type User } from "../context/AuthContext";
+
+interface FormState {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  isActive: boolean;
+}
 
 const EditProfile = () => {
   const { user, updateProfile } = useAuth();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState(() => ({
+  const [form, setForm] = useState<FormState>(() => ({
     name: user?.name || "",
     email: user?.email || "",
     phone: user?.phone || "",
@@ -27,7 +36,8 @@ const EditProfile = () => {
   };
 
   const handleCheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((s) => ({ ...s, [e.target.name]: e.target.checked } as any));
+    const { name, checked } = e.target;
+    setForm((s) => ({ ...s, [name]: checked }) as unknown as FormState);
   };
 
   const handleSubmit = (e: React.FormEvent) => {

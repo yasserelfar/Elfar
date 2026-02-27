@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleRegister = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
@@ -31,10 +31,10 @@ const Register = () => {
         createdAt: Date.now(),
       };
 
-      register(newUser);
+      await register(newUser);
 
       // تسجيل دخول تلقائي بعد التسجيل
-      login(newUser, false);
+      await login(email, password, false);
 
       navigate("/");
     } catch (err) {

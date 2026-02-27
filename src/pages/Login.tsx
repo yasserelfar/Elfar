@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth, type User } from "../context/AuthContext";
+import { useAuth } from "../hooks";
+import { type User } from "../context/AuthContext";
 import loginImage from "../assets/Login-bg2.jpg";
 
 const Login = () => {
@@ -12,25 +13,25 @@ const Login = () => {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
 
+  // Redirect if already logged in (on page load)
   useEffect(() => {
-    if (isAuthenticated && user) {
-      if (user.isAdmin) {
-        navigate("/Dashboard");
-      } else {
-        navigate("/");
-      }
+    if (isAuthenticated && user && user.isAdmin) {
+      navigate("/admin", { replace: true });
+    } else if (isAuthenticated && user) {
+      navigate("/", { replace: true });
     }
   }, [isAuthenticated, user, navigate]);
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
 
     const usersStr = localStorage.getItem("users");
     const users = usersStr
       ? JSON.parse(usersStr)
       : [
           {
-            name: "Admin",
+            name: "Admins",
             email: "admin@gmail.com",
             phone: "",
             password: "123456",
@@ -49,13 +50,19 @@ const Login = () => {
       return;
     }
 
-    login(foundUser, remember);
+    try {
+      // Call login to update context
+      await login(email, password, remember);
 
-    // redirect based on isAdmin
-    if (foundUser.isAdmin) {
-      navigate("/Dashboard");
-    } else {
-      navigate("/");
+      // Redirect based on the found user's isAdmin status
+      console.log("Login successful. User isAdmin:", foundUser.isAdmin);
+      if (foundUser.isAdmin) {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
     }
   };
 

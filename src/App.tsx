@@ -1,10 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AdminPage from "./pages/AdminPage";
 import AdminProductPage from "./pages/AdminProductPage";
-import Order from "./pages/Order";
+import Orders from "./pages/Orders";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import ProtectedRoute from "./pages/ProtectedRoute";
+import ProtectedRoute from "./routes/ProtectedRoute";
 import Home from "./pages/Home";
 import ProductPage from "./pages/ProductPage";
 import CartPage from "./pages/CartPage";
@@ -15,23 +15,23 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/account" element={<AccountPage />} />
-        <Route path="/account/edit" element={<EditProfile />} />
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/productPage/" element={<ProductPage />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/products" element={<ProductPage />} />
+
+        {/* admin protected */}
         <Route
-          path="/Dashboard"
+          path="/admin"
           element={
             <ProtectedRoute>
               <AdminPage />
             </ProtectedRoute>
           }
         />
-        <Route path="/" element={<Home />} />
         <Route
-          path="/Adminproducts"
+          path="/admin/products"
           element={
             <ProtectedRoute>
               <AdminProductPage />
@@ -39,13 +39,16 @@ function App() {
           }
         />
         <Route
-          path="/orders"
+          path="/admin/orders"
           element={
             <ProtectedRoute>
-              <Order />
+              <Orders />
             </ProtectedRoute>
           }
         />
+
+        <Route path="/account" element={<AccountPage />} />
+        <Route path="/account/edit" element={<EditProfile />} />
       </Routes>
     </Router>
   );

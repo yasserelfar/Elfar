@@ -1,148 +1,41 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import UserNav from "../components/UserNav";
 import ProductCard from "../components/ProductCard";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import Footer from "../components/Footer";
+import * as productService from "../services/productService";
 
-const dummyProducts = [
-  {
-    id: 1,
-    name: "Laptop",
-    price: 1200,
-    image:
-      "https://m.media-amazon.com/images/I/51sWxhvZ5DL._AC_SX300_SY300_QL70_ML2_.jpg",
-  },
-  {
-    id: 2,
-    name: "Smartphone",
-    price: 800,
-    image:
-      "https://m.media-amazon.com/images/I/61rK2UbzFTL._AC_SY300_SX300_QL70_ML2_.jpg",
-  },
-  {
-    id: 3,
-    name: "Headphones",
-    price: 150,
-    image:
-      "https://m.media-amazon.com/images/I/51oAjwCzv4L._AC_UL480_FMwebp_QL65_.jpg",
-  },
-  {
-    id: 4,
-    name: "Monitor",
-    price: 300,
-    image:
-      "https://m.media-amazon.com/images/I/71RTruFctrL._AC_SY300_SX300_QL70_FMwebp_.jpg",
-  },
-  {
-    id: 5,
-    name: "Mouse",
-    price: 300,
-    image:
-      "https://m.media-amazon.com/images/I/71RTruFctrL._AC_SY300_SX300_QL70_FMwebp_.jpg",
-  },
-  {
-    id: 6,
-    name: "Keyboard",
-    price: 100,
-    image:
-      "https://m.media-amazon.com/images/I/71RTruFctrL._AC_SY300_SX300_QL70_FMwebp_.jpg",
-  },
-  {
-    id: 7,
-    name: "Tablet",
-    price: 400,
-    image:
-      "https://m.media-amazon.com/images/I/71RTruFctrL._AC_SY300_SX300_QL70_FMwebp_.jpg",
-  },
-  {
-    id: 8,
-    name: "Monitor",
-    price: 300,
-    image:
-      "https://m.media-amazon.com/images/I/71RTruFctrL._AC_SY300_SX300_QL70_FMwebp_.jpg",
-  },
-  {
-    id: 9,
-    name: "Speaker",
-    price: 150,
-    image:
-      "https://m.media-amazon.com/images/I/71RTruFctrL._AC_SY300_SX300_QL70_FMwebp_.jpg",
-  },
-  {
-    id: 10,
-    name: "Camera",
-    price: 600,
-    image:
-      "https://m.media-amazon.com/images/I/71RTruFctrL._AC_SY300_SX300_QL70_FMwebp_.jpg",
-  },
-  {
-    id: 11,
-    name: "Smartwatch",
-    price: 250,
-    image:
-      "https://m.media-amazon.com/images/I/71RTruFctrL._AC_SY300_SX300_QL70_FMwebp_.jpg",
-  },
-  {
-    id: 12,
-    name: "Monitor",
-    price: 300,
-    image:
-      "https://m.media-amazon.com/images/I/71RTruFctrL._AC_SY300_SX300_QL70_FMwebp_.jpg",
-  },
-  {
-    id: 13,
-    name: "Keyboard",
-    price: 100,
-    image:
-      "https://m.media-amazon.com/images/I/71RTruFctrL._AC_SY300_SX300_QL70_FMwebp_.jpg",
-  },
-  {
-    id: 14,
-    name: "Monitor",
-    price: 300,
-    image:
-      "https://m.media-amazon.com/images/I/71RTruFctrL._AC_SY300_SX300_QL70_FMwebp_.jpg",
-  },
-  {
-    id: 15,
-    name: "Speaker",
-    price: 150,
-    image:
-      "https://m.media-amazon.com/images/I/71RTruFctrL._AC_SY300_SX300_QL70_FMwebp_.jpg",
-  },
-  {
-    id: 16,
-    name: "Camera",
-    price: 600,
-    image:
-      "https://m.media-amazon.com/images/I/71RTruFctrL._AC_SY300_SX300_QL70_FMwebp_.jpg",
-  },
-  {
-    id: 17,
-    name: "Monitor",
-    price: 300,
-    image:
-      "https://m.media-amazon.com/images/I/71RTruFctrL._AC_SY300_SX300_QL70_FMwebp_.jpg",
-  },
-  {
-    id: 18,
-    name: "Monitor",
-    price: 300,
-    image:
-      "https://m.media-amazon.com/images/I/71RTruFctrL._AC_SY300_SX300_QL70_FMwebp_.jpg",
-  },
-];
+// dummyProducts moved to service
+
 const ProductPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [products, setProducts] = useState<productService.Product[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 8;
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      setLoading(true);
+      try {
+        const res = await productService.fetchProducts();
+        setProducts(res);
+      } catch (e: any) {
+        setError(e.message || "Failed to load products");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProducts();
+  }, []);
 
   // تصفية المنتجات حسب البحث
   const filteredProducts = useMemo(() => {
-    return dummyProducts.filter((product) =>
+    return products.filter((product) =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
-  }, [searchTerm]);
+  }, [searchTerm, products]);
 
   // حساب عدد الصفحات
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -153,7 +46,7 @@ const ProductPage = () => {
   const currentProducts = filteredProducts.slice(startIndex, endIndex);
 
   // إعادة تعيين الصفحة عند تغيير البحث
-  const handleSearch = (value) => {
+  const handleSearch = (value: string) => {
     setSearchTerm(value);
     setCurrentPage(1);
   };
@@ -175,6 +68,11 @@ const ProductPage = () => {
   return (
     <div className="min-h-screen bg-gray-900">
       <UserNav />
+
+      {loading && (
+        <p className="text-center text-white mt-4">Loading products...</p>
+      )}
+      {error && <p className="text-center text-red-500 mt-4">{error}</p>}
 
       {/* Search Section */}
       <div className="bg-gray-800 py-8 sticky top-0 z-10">

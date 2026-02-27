@@ -10,40 +10,7 @@ const Orders = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const data = await orderService.fetchOrders();
-        setOrders(data);
-      } catch (e: any) {
-        setError(e.message || "Failed to load orders");
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
-
-  // فلترة البيانات
-
-  // show loading / error states
-  if (loading) {
-    return (
-      <div className="bg-gray-900 min-h-screen px-4 sm:px-10">
-        <AdminNavbar className="w-full" />
-        <p className="text-center text-white mt-10">Loading orders...</p>
-      </div>
-    );
-  }
-  if (error) {
-    return (
-      <div className="bg-gray-900 min-h-screen px-4 sm:px-10">
-        <AdminNavbar className="w-full" />
-        <p className="text-center text-red-500 mt-10">{error}</p>
-      </div>
-    );
-  }
+  // Declare all hooks at the top, before any conditional returns
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
       const matchesSearch =
@@ -56,6 +23,22 @@ const Orders = () => {
       return matchesSearch && matchesStatus;
     });
   }, [orders, search, statusFilter]);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const data = await orderService.fetchOrders();
+        setOrders(data);
+      } catch (e: unknown) {
+        const errorMsg = e instanceof Error ? e.message : "Failed to load orders";
+        setError(errorMsg);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -71,6 +54,25 @@ const Orders = () => {
         return "bg-gray-400 text-white";
     }
   };
+
+  // Now render based on state, without early returns
+  if (loading) {
+    return (
+      <div className="bg-gray-900 min-h-screen px-4 sm:px-10">
+        <AdminNavbar className="w-full" />
+        <p className="text-center text-white mt-10">Loading orders...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-gray-900 min-h-screen px-4 sm:px-10">
+        <AdminNavbar className="w-full" />
+        <p className="text-center text-red-500 mt-10">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-900 min-h-screen px-4 sm:px-10">
@@ -149,9 +151,7 @@ const Orders = () => {
                             newStatus,
                           );
                           setOrders((prev) =>
-                            prev.map((o) =>
-                              o.id === updated.id ? updated : o,
-                            ),
+                            prev.map((o) => (o.id === updated.id ? updated : o)),
                           );
                         } catch (err) {
                           console.error(err);

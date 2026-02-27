@@ -1,35 +1,29 @@
-import { useContext } from "react";
-import { CartContext } from "../context/CartContext";
-import { useAuth } from "../context/AuthContext";
+import { useCart, useAuth } from "../hooks";
 import { useNavigate } from "react-router-dom";
 
 const Cart = () => {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error("Cart must be used within CartProvider");
-  }
-  const { cart, addToCart, clearCart, setCart } = context;
+  const {
+    cart,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    totalPrice: calcTotal,
+  } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const decreaseQuantity = (id: number) => {
-    setCart(
-      cart
-        .map((item) =>
-          item.id === id ? { ...item, quantity: item.quantity - 1 } : item,
-        )
-        .filter((item) => item.quantity > 0),
-    );
+  const decreaseQuantity = async (id: number) => {
+    const item = cart.find((i) => i.id === id);
+    if (!item) return;
+    await updateQuantity(id, item.quantity - 1);
   };
 
-  const removeItem = (id: number) => {
-    setCart(cart.filter((item) => item.id !== id));
+  const removeItem = async (id: number) => {
+    await removeFromCart(id);
   };
 
-  const totalPrice = cart.reduce(
-    (total: number, item) => total + item.price * item.quantity,
-    0,
-  );
+  const totalPrice = calcTotal();
 
   const handleCheckout = () => {
     if (!user) {
@@ -82,7 +76,9 @@ const Cart = () => {
                   <span>{item.quantity}</span>
 
                   <button
-                    onClick={() => addToCart(item)}
+                    onClick={async () => {
+                      await addToCart(item);
+                    }}
                     className="bg-gray-700 px-3 py-1 rounded"
                   >
                     +

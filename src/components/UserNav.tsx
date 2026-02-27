@@ -7,17 +7,21 @@ import {
   ShoppingCartIcon,
 } from "@heroicons/react/24/solid";
 import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks";
 
 const UserNav = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
-  const links = [
+  const links: Array<{ name: string; to: string; isAnchor?: boolean }> = [
     { name: "Home", to: "/" },
-    { name: "Products", to: "/productPage" },
+    { name: "Products", to: "/products" },
     { name: "Contact", to: "#contact", isAnchor: true },
     { name: "Cart", to: "/cart" },
   ];
+
+  if (user?.isAdmin) {
+    links.splice(3, 0, { name: "Admin", to: "/admin" });
+  }
 
   return (
     <header className="bg-gray-800 text-white w-full p-4 sticky top-0 z-50">

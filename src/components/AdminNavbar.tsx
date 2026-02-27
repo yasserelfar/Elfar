@@ -1,19 +1,21 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../hooks";
 
-const AdminNavbar = ({ className }) => {
+const AdminNavbar = ({ className }: { className?: string }) => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const { logout } = useAuth();
   const links = [
-    { name: "Dashboard", path: "/Dashboard" },
-    { name: "Products", path: "/Adminproducts" },
-    { name: "Orders", path: "/orders" },
+    { name: "Dashboard", path: "/admin" },
+    { name: "Products", path: "/admin/products" },
+    { name: "Orders", path: "/admin/orders" },
     { name: "Logout", path: "/login", onClick: () => handleLogout() },
+    { name: "Account", path: "/account" },
   ];
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    sessionStorage.removeItem("user");
+    logout();
     window.location.href = "/login";
   };
   return (

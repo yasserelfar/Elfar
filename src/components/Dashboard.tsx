@@ -1,4 +1,3 @@
-import React from "react";
 import CountUp from "react-countup"; // استيراد المكتبة
 import { Line } from "react-chartjs-2";
 import {

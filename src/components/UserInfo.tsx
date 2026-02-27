@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks";
 
 const UserInfo: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-
+console.log("Rendering UserInfo with user:", user);
   if (!user) {
     return (
       <div className="p-6 bg-gray-800 rounded text-white">

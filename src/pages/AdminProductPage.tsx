@@ -1,40 +1,32 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminNavbar from "../components/AdminNavbar";
 import CountUp from "react-countup";
-
-const dummyProducts = [
-  {
-    id: 1,
-    name: "Laptop",
-    price: 1200,
-    stock: 10,
-    image:
-      "https://m.media-amazon.com/images/I/51sWxhvZ5DL._AC_SX300_SY300_QL70_ML2_.jpg",
-  },
-  {
-    id: 2,
-    name: "Smartphone",
-    price: 800,
-    stock: 25,
-    image:
-      "https://m.media-amazon.com/images/I/61rK2UbzFTL._AC_SY300_SX300_QL70_ML2_.jpg",
-  },
-  {
-    id: 3,
-    name: "Headphones",
-    price: 150,
-    stock: 5,
-    image:
-      "https://m.media-amazon.com/images/I/51oAjwCzv4L._AC_UL480_FMwebp_QL65_.jpg",
-  },
-];
+import * as productService from "../services/productService";
 
 const Products = () => {
-  const [products, setProducts] = useState(dummyProducts);
+  const [products, setProducts] = useState<productService.Product[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
+  const [editingProduct, setEditingProduct] =
+    useState<productService.Product | null>(null);
   const [search, setSearch] = useState("");
   const [stockFilter, setStockFilter] = useState("All");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const data = await productService.fetchProducts();
+        setProducts(data);
+      } catch (e: any) {
+        setError(e.message || "Failed to load");
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -60,32 +52,32 @@ const Products = () => {
     setFormData({ name: "", price: "", stock: "", image: "" });
   };
 
-  const handleDelete = (id) => {
-    setProducts(products.filter((p) => p.id !== id));
+  const handleDelete = async (id: number) => {
+    await productService.deleteProduct(id);
+    setProducts((prev) => prev.filter((p) => p.id !== id));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (editingProduct) {
-      setProducts(
-        products.map((p) =>
-          p.id === editingProduct.id
-            ? {
-                ...p,
-                ...formData,
-                price: Number(formData.price),
-                stock: Number(formData.stock),
-              }
-            : p,
-        ),
-      );
-    } else {
-      const newProduct = {
-        id: products.length + 1,
+      const updated = {
+        ...editingProduct,
         ...formData,
         price: Number(formData.price),
         stock: Number(formData.stock),
       };
-      setProducts([...products, newProduct]);
+      await productService.updateProduct(updated);
+      setProducts((prev) =>
+        prev.map((p) => (p.id === updated.id ? updated : p)),
+      );
+    } else {
+      const newProd = {
+        ...formData,
+        price: Number(formData.price),
+        stock: Number(formData.stock),
+        id: products.length + 1,
+      } as productService.Product;
+      const created = await productService.createProduct(newProd);
+      setProducts((prev) => [...prev, created]);
     }
     closeModal();
   };

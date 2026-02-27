@@ -31,7 +31,8 @@ const Orders = () => {
         const data = await orderService.fetchOrders();
         setOrders(data);
       } catch (e: unknown) {
-        const errorMsg = e instanceof Error ? e.message : "Failed to load orders";
+        const errorMsg =
+          e instanceof Error ? e.message : "Failed to load orders";
         setError(errorMsg);
       } finally {
         setLoading(false);
@@ -151,7 +152,9 @@ const Orders = () => {
                             newStatus,
                           );
                           setOrders((prev) =>
-                            prev.map((o) => (o.id === updated.id ? updated : o)),
+                            prev.map((o) =>
+                              o.id === updated.id ? updated : o,
+                            ),
                           );
                         } catch (err) {
                           console.error(err);

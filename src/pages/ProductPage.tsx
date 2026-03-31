@@ -20,7 +20,9 @@ const ProductPage = () => {
       setLoading(true);
       try {
         const res = await productService.fetchProducts();
-        setProducts(res);
+        // Handle both response formats: direct array or wrapped in response object
+        const productsData = Array.isArray(res) ? res : res.products || [];
+        setProducts(productsData);
       } catch (e: any) {
         setError(e.message || "Failed to load products");
       } finally {
@@ -32,6 +34,7 @@ const ProductPage = () => {
 
   // تصفية المنتجات حسب البحث
   const filteredProducts = useMemo(() => {
+    if (!products || !Array.isArray(products)) return [];
     return products.filter((product) =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
@@ -100,7 +103,7 @@ const ProductPage = () => {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-8">
               {currentProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product._id} product={product} />
               ))}
             </div>
 

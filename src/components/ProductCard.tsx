@@ -1,20 +1,14 @@
 import { useCart } from "../hooks";
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-}
+import type { Product } from "../services/productService";
 
 const ProductCard = ({ product }: { product: Product }) => {
   const { addToCart } = useCart();
   return (
     <div
-      key={product.id}
+      key={product._id}
       className="rounded-xl shadow-lg p-4 hover:scale-105 transition
         duration-200 bg-gray-800 text-white hover:shadow-lg
-      
+
       hover:shadow-amber-50"
     >
       <img
@@ -28,10 +22,13 @@ const ProductCard = ({ product }: { product: Product }) => {
 
       <button
         onClick={async () => {
-          try {
-            await addToCart(product);
-          } catch (e) {
-            console.error(e);
+          const productId = product._id || product.id;
+          if (productId) {
+            try {
+              await addToCart(productId);
+            } catch (e) {
+              console.error(e);
+            }
           }
         }}
         className="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded"

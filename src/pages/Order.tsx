@@ -10,11 +10,13 @@ const Orders = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const getOrderId = (order: orderService.Order) => order._id || order.id || "";
+
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       try {
-        const data = await orderService.fetchOrders();
+        const data = await orderService.getAllOrders();
         setOrders(data);
       } catch (e: any) {
         setError(e.message || "Failed to load orders");
@@ -45,10 +47,12 @@ const Orders = () => {
     );
   }
   const filteredOrders = useMemo(() => {
+    if (!orders || !Array.isArray(orders)) return [];
     return orders.filter((order) => {
       const matchesSearch =
-        order.name.toLowerCase().includes(search.toLowerCase()) ||
-        order.customer.toLowerCase().includes(search.toLowerCase());
+        order.items.some((item) =>
+          item.product.name.toLowerCase().includes(search.toLowerCase()),
+        ) || order.shippingAddress.toLowerCase().includes(search.toLowerCase());
 
       const matchesStatus =
         statusFilter === "All" || order.status === statusFilter;
@@ -106,72 +110,77 @@ const Orders = () => {
         <table className="min-w-full bg-gray-800 shadow rounded-lg">
           <thead>
             <tr className="bg-gray-700 text-white">
-              <th className="py-2 px-4 text-left">ID</th>
-              <th className="py-2 px-4 text-left">Image</th>
-              <th className="py-2 px-4 text-left">Name</th>
-              <th className="py-2 px-4 text-left">Price</th>
-              <th className="py-2 px-4 text-left">Quantity</th>
-              <th className="py-2 px-4 text-left">Customer</th>
+              <th className="py-2 px-4 text-left">Order ID</th>
+              <th className="py-2 px-4 text-left">Items</th>
+              <th className="py-2 px-4 text-left">Total</th>
+              <th className="py-2 px-4 text-left">Shipping Address</th>
               <th className="py-2 px-4 text-left">Status</th>
+              <th className="py-2 px-4 text-left">Date</th>
             </tr>
           </thead>
           <tbody>
             {filteredOrders.length > 0 ? (
               filteredOrders.map((order) => (
                 <tr
-                  key={order.id}
+                  key={getOrderId(order)}
                   className="border-t border-gray-700 text-white"
                 >
-                  <td className="py-2 px-4">{order.id}</td>
                   <td className="py-2 px-4">
-                    <img
-                      src={order.image}
-                      alt={order.name}
-                      className="w-12 h-12 object-cover rounded"
-                    />
-                  </td>
-                  <td className="py-2 px-4">{order.name}</td>
-                  <td className="py-2 px-4">
-                    $<CountUp end={order.price} duration={1.5} separator="," />
+                    {(order._id || order.id || "").slice(-8) || "N/A"}
                   </td>
                   <td className="py-2 px-4">
-                    <CountUp end={order.quantity} duration={1} />
+                    {order.items.length} item
+                    {order.items.length !== 1 ? "s" : ""} -{" "}
+                    {order.items[0].product.name}
+                    {order.items.length > 1 ? "..." : ""}
                   </td>
-                  <td className="py-2 px-4">{order.customer}</td>
+                  <td className="py-2 px-4">
+                    $<CountUp end={order.total} duration={1.5} separator="," />
+                  </td>
+                  <td className="py-2 px-4">{order.shippingAddress}</td>
                   <td className="py-2 px-4">
                     <select
                       value={order.status}
                       onChange={async (e) => {
-                        const newStatus = e.target.value;
+                        const newStatus = e.target
+                          .value as orderService.Order["status"];
                         try {
-                          const updated = await orderService.updateOrderStatus(
-                            order.id,
-                            newStatus,
+                          await orderService.updateOrderStatus(
+                            getOrderId(order),
+                            { status: newStatus },
                           );
+                          // Update local state
                           setOrders((prev) =>
                             prev.map((o) =>
-                              o.id === updated.id ? updated : o,
+                              getOrderId(o) === getOrderId(order)
+                                ? { ...o, status: newStatus }
+                                : o,
                             ),
                           );
-                        } catch (err) {
-                          console.error(err);
+                        } catch (error) {
+                          console.error(
+                            "Failed to update order status:",
+                            error,
+                          );
                         }
                       }}
-                      className={`px-2 py-1 rounded text-sm font-semibold ${getStatusColor(
-                        order.status,
-                      )}`}
+                      className={`px-2 py-1 rounded text-sm ${getStatusColor(order.status)}`}
                     >
                       <option value="Pending">Pending</option>
+                      <option value="Processing">Processing</option>
                       <option value="Shipped">Shipped</option>
                       <option value="Delivered">Delivered</option>
                       <option value="Cancelled">Cancelled</option>
                     </select>
                   </td>
+                  <td className="py-2 px-4">
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="text-center py-6 text-gray-400">
+                <td colSpan={6} className="py-4 px-4 text-center text-gray-400">
                   No orders found
                 </td>
               </tr>

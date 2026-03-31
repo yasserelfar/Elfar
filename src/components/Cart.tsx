@@ -1,5 +1,6 @@
 import { useCart, useAuth } from "../hooks";
 import { useNavigate } from "react-router-dom";
+import * as orderService from "../services/orderService";
 
 const Cart = () => {
   const {
@@ -13,26 +14,39 @@ const Cart = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const decreaseQuantity = async (id: number) => {
-    const item = cart.find((i) => i.id === id);
+  const getProductId = (product: any) => product._id || product.id || "";
+
+  const decreaseQuantity = async (productId: string) => {
+    const item = cart.find((i) => getProductId(i.product) === productId);
     if (!item) return;
-    await updateQuantity(id, item.quantity - 1);
+    await updateQuantity(productId, item.quantity - 1);
   };
 
-  const removeItem = async (id: number) => {
-    await removeFromCart(id);
+  const removeItem = async (productId: string) => {
+    await removeFromCart(productId);
   };
 
   const totalPrice = calcTotal();
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!user) {
       navigate("/login");
       return;
     }
 
-    alert("Order Placed Successfully 🎉");
-    clearCart();
+    try {
+      // For now, use dummy shipping and payment info
+      // In a real app, you'd have a checkout form
+      const shippingAddress = "123 Main St, City, Country";
+      const paymentMethod = "Credit Card";
+
+      await orderService.createOrder({ shippingAddress, paymentMethod });
+      alert("Order placed successfully! 🎉");
+      clearCart();
+    } catch (error) {
+      console.error("Failed to create order:", error);
+      alert("Failed to place order. Please try again.");
+    }
   };
 
   return (
@@ -46,20 +60,20 @@ const Cart = () => {
           <div className="space-y-6">
             {cart.map((item) => (
               <div
-                key={item.id}
+                key={getProductId(item.product)}
                 className="bg-gray-800 p-4 rounded-lg flex items-center justify-between"
               >
                 {/* Product Info */}
                 <div className="flex items-center gap-4">
                   <img
-                    src={item.image}
-                    alt={item.name}
+                    src={item.product.image}
+                    alt={item.product.name}
                     className="w-16 h-16 object-cover rounded"
                   />
                   <div>
-                    <h2 className="font-semibold">{item.name}</h2>
+                    <h2 className="font-semibold">{item.product.name}</h2>
                     <p className="text-blue-400">
-                      ${item.price} x {item.quantity}
+                      ${item.product.price} x {item.quantity}
                     </p>
                   </div>
                 </div>
@@ -67,7 +81,7 @@ const Cart = () => {
                 {/* Controls */}
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={() => decreaseQuantity(item.id)}
+                    onClick={() => decreaseQuantity(getProductId(item.product))}
                     className="bg-gray-700 px-3 py-1 rounded"
                   >
                     -
@@ -77,7 +91,7 @@ const Cart = () => {
 
                   <button
                     onClick={async () => {
-                      await addToCart(item);
+                      await addToCart(getProductId(item.product));
                     }}
                     className="bg-gray-700 px-3 py-1 rounded"
                   >
@@ -85,7 +99,7 @@ const Cart = () => {
                   </button>
 
                   <button
-                    onClick={() => removeItem(item.id)}
+                    onClick={() => removeItem(getProductId(item.product))}
                     className="bg-red-600 px-3 py-1 rounded ml-4"
                   >
                     Remove

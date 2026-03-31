@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks";
-import { type User } from "../context/AuthContext";
 import loginImage from "../assets/Login-bg2.jpg";
 
 const Login = () => {
@@ -26,41 +25,9 @@ const Login = () => {
     e.preventDefault();
     setError("");
 
-    const usersStr = localStorage.getItem("users");
-    const users = usersStr
-      ? JSON.parse(usersStr)
-      : [
-          {
-            name: "Admins",
-            email: "admin@gmail.com",
-            phone: "",
-            password: "123456",
-            isAdmin: true,
-            isActive: true,
-            createdAt: Date.now(),
-          },
-        ];
-
-    const foundUser = users.find(
-      (user: User) => user.email === email && user.password === password,
-    );
-
-    if (!foundUser) {
-      setError("Invalid Email or Password");
-      return;
-    }
-
     try {
-      // Call login to update context
       await login(email, password, remember);
-
-      // Redirect based on the found user's isAdmin status
-      console.log("Login successful. User isAdmin:", foundUser.isAdmin);
-      if (foundUser.isAdmin) {
-        navigate("/admin", { replace: true });
-      } else {
-        navigate("/", { replace: true });
-      }
+      // Redirect will happen in useEffect
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     }

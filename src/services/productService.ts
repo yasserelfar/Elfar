@@ -1,66 +1,74 @@
-// Mock product service
-// import api from "./api"; // axios instance for real backend
+// Product service using real backend API
+import api from "./api";
 
 export interface Product {
-  id: number;
+  _id?: string;
+  id?: string;
   name: string;
   price: number;
+  description?: string;
+  image: string;
+  stock: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateProductData {
+  name: string;
+  price: number;
+  description?: string;
   image: string;
   stock: number;
 }
 
-let products: Product[] = [
-  {
-    id: 1,
-    name: "Laptop",
-    stock: 50,
+export interface UpdateProductData {
+  name?: string;
+  price?: number;
+  description?: string;
+  image?: string;
+  stock?: number;
+}
 
-    price: 1200,
-    image:
-      "https://m.media-amazon.com/images/I/8166TsnPDyL._AC_SX644_CB1169409_QL70_.jpg",
-  },
-  {
-    id: 2,
-    stock: 50,
+export interface ProductsResponse {
+  products: Product[];
+  total: number;
+  page: number;
+  pages: number;
+}
 
-    name: "Smartphone",
-    price: 800,
-    image:
-      "https://m.media-amazon.com/images/I/41NGdWgVgdL._AC_UY327_FMwebp_QL65_.jpg",
-  },
-  {
-    id: 3,
-    stock: 50,
-    name: "Headphones",
-    price: 150,
-    image:
-      "https://m.media-amazon.com/images/I/515FE+S4yLL._AC_UY327_FMwebp_QL65_.jpg",
-  },
-];
-
-const delay = (ms = 500) => new Promise((res) => setTimeout(res, ms));
-
-export const fetchProducts = async (): Promise<Product[]> => {
-  await delay();
-  return [...products];
+export const fetchProducts = async (
+  page = 1,
+  limit = 100,
+  search?: string,
+): Promise<ProductsResponse> => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  if (search) {
+    params.append("search", search);
+  }
+  const response = await api.get(`/products?${params}`);
+  return response.data;
 };
 
-export const createProduct = async (prod: Product): Promise<Product> => {
-  await delay();
-  const newProd = { ...prod, id: products.length + 1 };
-  products.push(newProd);
-  return newProd;
+export const createProduct = async (
+  data: CreateProductData,
+): Promise<Product> => {
+  const response = await api.post("/products/addproduct", data);
+  return response.data;
 };
 
-export const updateProduct = async (prod: Product): Promise<Product> => {
-  await delay();
-  products = products.map((p) => (p.id === prod.id ? prod : p));
-  return prod;
+export const updateProduct = async (
+  productId: string,
+  data: UpdateProductData,
+): Promise<Product> => {
+  const response = await api.put(`/products/${productId}`, data);
+  return response.data;
 };
 
-export const deleteProduct = async (id: number): Promise<void> => {
-  await delay();
-  products = products.filter((p) => p.id !== id);
+export const deleteProduct = async (productId: string): Promise<void> => {
+  await api.delete(`/products/${productId}`);
 };
 
 export default {

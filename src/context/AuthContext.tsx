@@ -2,13 +2,13 @@ import { createContext, useState, type ReactNode } from "react";
 import * as authService from "../services/authService";
 
 export interface User {
-  name?: string;
+  _id?: string;
+  name: string;
   email: string;
-  phone?: string;
-  password: string;
-  isAdmin: boolean;
-  isActive: boolean;
-  createdAt: number; // timestamp
+  phoneNumber?: string;
+  isAdmin?: boolean;
+  isActive?: boolean;
+  createdAt?: string;
 }
 
 interface AuthContextType {
@@ -18,8 +18,14 @@ interface AuthContextType {
   isAdmin: boolean;
   login: (email: string, password: string, remember: boolean) => Promise<void>;
   logout: () => void;
-  register: (user: User) => Promise<void>;
-  updateProfile: (user: User) => Promise<User>;
+  register: (
+    name: string,
+    email: string,
+    password: string,
+    phoneNumber?: string,
+  ) => Promise<void>;
+  updateProfile: (data: authService.UpdateProfileData) => Promise<User>;
+  fetchCurrentUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,7 +55,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     rememberMe: boolean,
   ) => {
     try {
-      const resp = await authService.login(email, password);
+      const resp = await authService.login({ email, password });
       setUser(resp.user);
       setToken(resp.token);
       setIsAuthenticated(true);
@@ -72,9 +78,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     sessionStorage.removeItem("token");
   };
 
-  const register = async (user: User) => {
+  const register = async (
+    name: string,
+    email: string,
+    password: string,
+    phoneNumber?: string,
+  ) => {
     try {
-      const resp = await authService.register(user);
+      const resp = await authService.register({
+        name,
+        email,
+        password,
+        phoneNumber,
+      });
       setUser(resp.user);
       setToken(resp.token);
       setIsAuthenticated(true);
@@ -85,14 +101,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const updateProfile = async (updatedUser: User) => {
+  const updateProfile = async (data: authService.UpdateProfileData) => {
+    if (!user?._id) throw new Error("User not authenticated");
     try {
-      const user = await authService.updateProfile(updatedUser);
-      setUser(user);
-      localStorage.setItem("user", JSON.stringify(user));
-      return user;
+      const updatedUser = await authService.updateProfile(user._id, data);
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      return updatedUser;
     } catch (e) {
       throw e;
+    }
+  };
+
+  const fetchCurrentUser = async () => {
+    if (!user?._id) return;
+    try {
+      const currentUser = await authService.fetchCurrentUser(user._id);
+      setUser(currentUser);
+      localStorage.setItem("user", JSON.stringify(currentUser));
+    } catch (e) {
+      // If fetch fails, logout
+      logout();
     }
   };
 
@@ -107,6 +136,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         logout,
         register,
         updateProfile,
+        fetchCurrentUser,
       }}
     >
       {children}

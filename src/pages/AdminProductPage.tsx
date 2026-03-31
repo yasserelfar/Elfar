@@ -10,19 +10,18 @@ const Products = () => {
     useState<productService.Product | null>(null);
   const [search, setSearch] = useState("");
   const [stockFilter, setStockFilter] = useState("All");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
-      setLoading(true);
       try {
-        const data = await productService.fetchProducts();
-        setProducts(data);
+        const response = await productService.fetchProducts();
+        // Handle both response formats: direct array or wrapped in response object
+        const productsData = Array.isArray(response)
+          ? response
+          : response.products || [];
+        setProducts(productsData);
       } catch (e: any) {
-        setError(e.message || "Failed to load");
-      } finally {
-        setLoading(false);
+        console.error(e.message || "Failed to load");
       }
     };
     load();
@@ -31,17 +30,30 @@ const Products = () => {
   const [formData, setFormData] = useState({
     name: "",
     price: "",
+    description: "",
     stock: "",
     image: "",
   });
 
-  const openModal = (product = null) => {
+  const openModal = (product?: productService.Product | null) => {
     if (product) {
       setEditingProduct(product);
-      setFormData(product);
+      setFormData({
+        name: product.name,
+        price: product.price.toString(),
+        description: product.description || "",
+        stock: product.stock.toString(),
+        image: product.image,
+      });
     } else {
       setEditingProduct(null);
-      setFormData({ name: "", price: "", stock: "", image: "" });
+      setFormData({
+        name: "",
+        price: "",
+        description: "",
+        stock: "",
+        image: "",
+      });
     }
     setShowModal(true);
   };
@@ -49,35 +61,39 @@ const Products = () => {
   const closeModal = () => {
     setShowModal(false);
     setEditingProduct(null);
-    setFormData({ name: "", price: "", stock: "", image: "" });
+    setFormData({ name: "", price: "", description: "", stock: "", image: "" });
   };
 
-  const handleDelete = async (id: number) => {
+  const getProductId = (product: productService.Product) =>
+    product._id || product.id || "";
+
+  const handleDelete = async (id: string) => {
     await productService.deleteProduct(id);
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+    setProducts((prev) => prev.filter((p) => getProductId(p) !== id));
   };
 
   const handleSave = async () => {
     if (editingProduct) {
-      const updated = {
-        ...editingProduct,
-        ...formData,
+      const productId = getProductId(editingProduct);
+      const updated = await productService.updateProduct(productId, {
+        name: formData.name,
         price: Number(formData.price),
+        description: formData.description,
         stock: Number(formData.stock),
-      };
-      await productService.updateProduct(updated);
+        image: formData.image,
+      });
       setProducts((prev) =>
-        prev.map((p) => (p.id === updated.id ? updated : p)),
+        prev.map((p) => (getProductId(p) === productId ? updated : p)),
       );
     } else {
-      const newProd = {
-        ...formData,
+      const newProd = await productService.createProduct({
+        name: formData.name,
         price: Number(formData.price),
+        description: formData.description,
         stock: Number(formData.stock),
-        id: products.length + 1,
-      } as productService.Product;
-      const created = await productService.createProduct(newProd);
-      setProducts((prev) => [...prev, created]);
+        image: formData.image,
+      });
+      setProducts((prev) => [...prev, newProd]);
     }
     closeModal();
   };
@@ -98,7 +114,7 @@ const Products = () => {
     return matchesSearch && matchesStock;
   });
 
-  const getStockColor = (stock) => {
+  const getStockColor = (stock: number) => {
     if (stock === 0) return "bg-red-500 text-white";
     if (stock <= 10) return "bg-yellow-400 text-black";
     return "bg-green-500 text-white";
@@ -157,8 +173,13 @@ const Products = () => {
           <tbody>
             {filteredProducts.length > 0 ? (
               filteredProducts.map((p) => (
-                <tr key={p.id} className="border-t border-gray-700 text-white">
-                  <td className="py-2 px-4">{p.id}</td>
+                <tr
+                  key={getProductId(p)}
+                  className="border-t border-gray-700 text-white"
+                >
+                  <td className="py-2 px-4">
+                    {(p._id || p.id || "").slice(-8) || "N/A"}
+                  </td>
                   <td className="py-2 px-4">
                     <img
                       src={p.image}
@@ -187,7 +208,7 @@ const Products = () => {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(p.id)}
+                      onClick={() => handleDelete(getProductId(p))}
                       className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                     >
                       Delete
@@ -197,7 +218,7 @@ const Products = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="text-center py-6 text-gray-400">
+                <td colSpan={6} className="text-center py-6 text-gray-400">
                   No products found
                 </td>
               </tr>

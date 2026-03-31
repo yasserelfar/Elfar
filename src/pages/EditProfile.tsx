@@ -1,14 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks";
-import { type User } from "../context/AuthContext";
 
 interface FormState {
   name: string;
   email: string;
-  phone: string;
-  password: string;
-  isActive: boolean;
+  phoneNumber: string;
 }
 
 const EditProfile = () => {
@@ -18,9 +15,7 @@ const EditProfile = () => {
   const [form, setForm] = useState<FormState>(() => ({
     name: user?.name || "",
     email: user?.email || "",
-    phone: user?.phone || "",
-    password: user?.password || "",
-    isActive: user?.isActive ?? true,
+    phoneNumber: user?.phoneNumber || "",
   }));
 
   if (!user) {
@@ -35,28 +30,19 @@ const EditProfile = () => {
     setForm((s) => ({ ...s, [e.target.name]: e.target.value }));
   };
 
-  const handleCheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    setForm((s) => ({ ...s, [name]: checked }) as unknown as FormState);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const updated: User = {
-      ...user!,
-      name: form.name,
-      email: form.email,
-      phone: form.phone,
-      password: form.password,
-      // preserve isAdmin/isActive/createdAt from existing user
-      isAdmin: user?.isAdmin || false,
-      isActive: user?.isActive ?? true,
-      createdAt: user?.createdAt || Date.now(),
-    };
-
-    updateProfile(updated);
-    navigate("/account");
+    try {
+      await updateProfile({
+        name: form.name,
+        email: form.email,
+        phoneNumber: form.phoneNumber,
+      });
+      navigate("/account");
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+    }
   };
 
   return (
@@ -85,47 +71,22 @@ const EditProfile = () => {
           </div>
 
           <div>
-            <label className="block text-sm">Password</label>
-            <input
-              name="password"
-              type="password"
-              value={form.password}
-              onChange={handleChange}
-              className="w-full mt-1 p-2 rounded bg-gray-700"
-            />
-          </div>
-
-          <div>
             <label className="block text-sm">Phone</label>
             <input
-              name="phone"
-              value={form.phone}
+              name="phoneNumber"
+              value={form.phoneNumber}
               onChange={handleChange}
               className="w-full mt-1 p-2 rounded bg-gray-700"
             />
           </div>
-
-          {user?.isAdmin && (
-            <div className="flex items-center gap-2">
-              <input
-                disabled
-                type="checkbox"
-                name="isActive"
-                checked={!!form.isActive}
-                onChange={handleCheckbox}
-                id="isActive"
-              />
-              <label htmlFor="isActive" className="text-sm">
-                Active
-              </label>
-            </div>
-          )}
 
           <div>
             <label className="block text-sm">Member since</label>
             <input
               readOnly
-              value={new Date(user.createdAt).toLocaleString()}
+              value={
+                user.createdAt ? new Date(user.createdAt).toLocaleString() : "-"
+              }
               className="w-full mt-1 p-2 rounded bg-gray-700 text-gray-300"
             />
           </div>

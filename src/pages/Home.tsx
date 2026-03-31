@@ -14,9 +14,13 @@ const Home = () => {
     const load = async () => {
       setLoading(true);
       try {
-        const all = await productService.fetchProducts();
+        const response = await productService.fetchProducts();
+        // Handle both response formats: direct array or wrapped in response object
+        const productsData = Array.isArray(response)
+          ? response
+          : response.products || [];
         // just take first 4 as featured
-        setFeatured(all.slice(0, 4));
+        setFeatured(productsData.slice(0, 4));
       } catch (e: any) {
         setError(e.message || "Could not load featured");
       } finally {
@@ -39,7 +43,7 @@ const Home = () => {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {featured.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard key={product._id} product={product} />
             ))}
           </div>
         </div>

@@ -4,7 +4,7 @@ import { useAuth } from "../hooks";
 const UserInfo: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-console.log("Rendering UserInfo with user:", user);
+  console.log("Rendering UserInfo with user:", user);
   if (!user) {
     return (
       <div className="p-6 bg-gray-800 rounded text-white">
@@ -18,9 +18,6 @@ console.log("Rendering UserInfo with user:", user);
     navigate("/");
   };
 
-  const formatDate = (ts?: number) =>
-    ts ? new Date(ts).toLocaleString() : "-";
-
   return (
     <div className="max-w-md mx-auto bg-gray-900 text-white p-6 rounded-lg shadow">
       <div className="flex items-center gap-4">
@@ -32,7 +29,9 @@ console.log("Rendering UserInfo with user:", user);
         <div>
           <h2 className="text-xl font-semibold">{user.name || "User"}</h2>
           <p className="text-sm text-gray-300">{user.email}</p>
-          <p className="text-sm text-gray-300">Phone: {user.phone || "-"}</p>
+          <p className="text-sm text-gray-300">
+            Phone: {user.phoneNumber || "-"}
+          </p>
           <p className="mt-1 text-xs text-gray-400">
             Status: {user.isActive ? "Active" : "Inactive"}
           </p>
@@ -40,7 +39,8 @@ console.log("Rendering UserInfo with user:", user);
             Role: {user.isAdmin ? "Admin" : "User"}
           </p>
           <p className="mt-1 text-xs text-gray-400">
-            Joined: {formatDate(user.createdAt)}
+            Joined:{" "}
+            {user.createdAt ? new Date(user.createdAt).toLocaleString() : "-"}
           </p>
         </div>
       </div>

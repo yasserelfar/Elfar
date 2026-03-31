@@ -1,16 +1,32 @@
-// Mock auth service simulating backend
-// We'll export types and async functions. Replace with axios calls later.
-
-// import api from "./api"; // axios instance available for future use
+// Auth service using real backend API
+import api from "./api";
 
 export interface User {
-  name?: string;
+  _id?: string;
+  name: string;
   email: string;
-  phone?: string;
+  phoneNumber?: string;
+  isAdmin?: boolean;
+  isActive?: boolean;
+  createdAt?: string;
+}
+
+export interface RegisterData {
+  name: string;
+  email: string;
   password: string;
-  isAdmin: boolean;
-  isActive: boolean;
-  createdAt: number;
+  phoneNumber?: string;
+}
+
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+export interface UpdateProfileData {
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
 }
 
 interface AuthResponse {
@@ -18,82 +34,54 @@ interface AuthResponse {
   token: string;
 }
 
-// People data stored in localStorage for now
-const getStoredUsers = (): User[] => {
-  const str = localStorage.getItem("users");
-  return str
-    ? JSON.parse(str)
-    : [
-        {
-          name: "Admins",
-          email: "admin@gmail.com",
-          phone: "",
-          password: "123456",
-          isAdmin: true,
-          isActive: true,
-          createdAt: Date.now(),
-        },
-      ];
+export const login = async (data: LoginData): Promise<AuthResponse> => {
+  const response = await api.post("/users/login", data);
+  return response.data;
 };
 
-const saveUsers = (users: User[]) => {
-  localStorage.setItem("users", JSON.stringify(users));
+export const register = async (data: RegisterData): Promise<AuthResponse> => {
+  const response = await api.post("/users/register", data);
+  return response.data;
 };
 
-// simulate network latency
-const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
-
-export const login = async (
-  email: string,
-  password: string,
-): Promise<AuthResponse> => {
-  await delay();
-  const users = getStoredUsers();
-  const user = users.find((u) => u.email === email && u.password === password);
-  if (!user) {
-    throw new Error("Invalid credentials");
-  }
-  const token = "mock-token-" + Date.now();
-  return { user, token };
+export const fetchCurrentUser = async (userId: string): Promise<User> => {
+  const response = await api.get(`/users/${userId}`);
+  return response.data;
 };
 
-export const register = async (newUser: User): Promise<AuthResponse> => {
-  await delay();
-  const users = getStoredUsers();
-  if (users.some((u) => u.email === newUser.email)) {
-    throw new Error("User already exists");
-  }
-  users.push(newUser);
-  saveUsers(users);
-  const token = "mock-token-" + Date.now();
-  return { user: newUser, token };
+export const updateProfile = async (
+  userId: string,
+  data: UpdateProfileData,
+): Promise<User> => {
+  const response = await api.put(`/users/${userId}`, data);
+  return response.data;
 };
 
-export const updateProfile = async (updated: User): Promise<User> => {
-  await delay();
-  const users = getStoredUsers();
-  const idx = users.findIndex((u) => u.email === updated.email);
-  if (idx >= 0) {
-    users[idx] = updated;
-    saveUsers(users);
-  }
-  return updated;
+// Admin functions
+export const getAllUsers = async (
+  page = 1,
+  limit = 10,
+): Promise<{ users: User[]; total: number }> => {
+  const response = await api.get(`/users?page=${page}&limit=${limit}`);
+  return response.data;
 };
 
-// future functions could call api
-export const fetchCurrentUser = async (): Promise<User> => {
-  // placeholder; with real backend, use token to fetch
-  await delay();
-  const userStr = localStorage.getItem("user");
-  if (!userStr) {
-    throw new Error("No user");
-  }
-  return JSON.parse(userStr);
+export const addAdmin = async (data: RegisterData): Promise<User> => {
+  const response = await api.post("/users/addadmin", data);
+  return response.data;
+};
+
+export const deactivateUser = async (userId: string): Promise<User> => {
+  const response = await api.put(`/users/deactivate/${userId}`);
+  return response.data;
 };
 
 export default {
   login,
   register,
-  updateProfile,
   fetchCurrentUser,
+  updateProfile,
+  getAllUsers,
+  addAdmin,
+  deactivateUser,
 };

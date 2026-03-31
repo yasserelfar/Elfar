@@ -33,14 +33,14 @@ const Dashboard = () => {
     responsive: true,
     plugins: {
       legend: {
-        position: "top",
+        position: "top" as const,
         labels: { color: "#fff" },
       },
       title: {
         display: true,
         text: "Weekly Sales",
         color: "#fff",
-        font: { size: 20, weight: "bold" },
+        font: { size: 20, weight: "bold" as const },
       },
     },
     scales: {

@@ -1,74 +1,55 @@
-// Mock cart service
-// import api from "./api"; // axios instance for real backend
+// Cart service using real backend API
+import api from "./api";
 import type { Product } from "./productService";
 
-export interface CartItem extends Product {
+export interface CartItem {
+  product: Product;
   quantity: number;
 }
 
-let cart: CartItem[] = [];
+export interface CartResponse {
+  items: CartItem[];
+  total: number;
+}
 
-const delay = (ms = 300) => new Promise((res) => setTimeout(res, ms));
-
-export const getCart = async (): Promise<CartItem[]> => {
-  await delay();
-  // read from localStorage for persistence
-  const stored = localStorage.getItem("cart");
-  if (stored) {
-    cart = JSON.parse(stored);
-  }
-  return [...cart];
+export const getCart = async (): Promise<CartResponse> => {
+  const response = await api.get("/cart");
+  return response.data;
 };
 
-const persist = () => {
-  localStorage.setItem("cart", JSON.stringify(cart));
+export const addToCart = async (productId: string): Promise<CartResponse> => {
+  const response = await api.post("/cart", { productId });
+  return response.data;
 };
 
-export const addToCart = async (product: Product): Promise<CartItem[]> => {
-  await delay();
-  const existing = cart.find((i) => i.id === product.id);
-  if (existing) {
-    existing.quantity += 1;
-  } else {
-    cart.push({ ...product, quantity: 1 });
-  }
-  persist();
-  return [...cart];
-};
-
-export const removeFromCart = async (id: number): Promise<CartItem[]> => {
-  await delay();
-  cart = cart.filter((i) => i.id !== id);
-  persist();
-  return [...cart];
-};
-
-export const updateQuantity = async (
-  id: number,
+export const updateCartItemQuantity = async (
+  productId: string,
   quantity: number,
-): Promise<CartItem[]> => {
-  await delay();
-  cart = cart.map((i) => (i.id === id ? { ...i, quantity } : i));
-  cart = cart.filter((i) => i.quantity > 0);
-  persist();
-  return [...cart];
+): Promise<CartResponse> => {
+  const response = await api.put("/cart", { productId, quantity });
+  return response.data;
 };
 
-export const clearCart = async (): Promise<CartItem[]> => {
-  await delay();
-  cart = [];
-  persist();
-  return [...cart];
+export const removeFromCart = async (
+  productId: string,
+): Promise<CartResponse> => {
+  const response = await api.delete("/cart", { data: { productId } });
+  return response.data;
+};
+
+export const clearCart = async (): Promise<CartResponse> => {
+  const response = await api.delete("/cart/clear");
+  return response.data;
 };
 
 export const totalPrice = (items: CartItem[]) =>
-  items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
 
 export default {
   getCart,
   addToCart,
+  updateCartItemQuantity,
   removeFromCart,
-  updateQuantity,
   clearCart,
   totalPrice,
 };

@@ -1,84 +1,61 @@
-// orderService.ts
-// mock service handling order-related operations
+// Order service using real backend API
+import api from "./api";
+import type { Product } from "./productService";
 
-// In a real application these would make HTTP requests to a backend API.
-// For now we emulate async behavior with setTimeout.
+export interface OrderItem {
+  product: Product;
+  quantity: number;
+  price: number; // price at time of order
+}
 
-const dummyOrders: Order[] = [
-  {
-    id: 1,
-    name: "Laptop",
-    price: 1200,
-    quantity: 2,
-    customer: "John Doe",
-    status: "Pending",
-    image:
-      "https://m.media-amazon.com/images/I/51sWxhvZ5DL._AC_SX300_SY300_QL70_ML2_.jpg",
-  },
-  {
-    id: 2,
-    name: "Smartphone",
-    price: 800,
-    quantity: 1,
-    customer: "Alice Smith",
-    status: "Shipped",
-    image:
-      "https://m.media-amazon.com/images/I/61rK2UbzFTL._AC_SY300_SX300_QL70_ML2_.jpg",
-  },
-  {
-    id: 3,
-    name: "Headphones",
-    price: 150,
-    quantity: 3,
-    customer: "Bob Johnson",
-    status: "Delivered",
-    image:
-      "https://m.media-amazon.com/images/I/51oAjwCzv4L._AC_UL480_FMwebp_QL65_.jpg",
-  },
-  {
-    id: 4,
-    name: "Keyboard",
-    price: 75,
-    quantity: 2,
-    customer: "Daniel Brown",
-    status: "Cancelled",
-    image:
-      "https://m.media-amazon.com/images/I/51lC3Y0s+0L._AC_SY300_SX300_QL70_ML2_.jpg",
-  },
-];
+export interface Order {
+  _id?: string;
+  id?: string;
+  user: string; // user ID
+  items: OrderItem[];
+  total: number;
+  shippingAddress: string;
+  paymentMethod: string;
+  status: "Pending" | "Processing" | "Shipped" | "Delivered" | "Cancelled";
+  createdAt: string;
+  updatedAt: string;
+}
 
-export const fetchOrders = async (): Promise<Order[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(dummyOrders);
-    }, 500);
-  });
+export interface CreateOrderData {
+  shippingAddress: string;
+  paymentMethod: string;
+}
+
+export interface UpdateOrderStatusData {
+  status: "Pending" | "Processing" | "Shipped" | "Delivered" | "Cancelled";
+}
+
+export const createOrder = async (data: CreateOrderData): Promise<Order> => {
+  const response = await api.post("/orders", data);
+  return response.data;
+};
+
+export const getMyOrders = async (): Promise<Order[]> => {
+  const response = await api.get("/orders");
+  return response.data;
+};
+
+export const getAllOrders = async (): Promise<Order[]> => {
+  const response = await api.get("/orders/all");
+  return response.data;
 };
 
 export const updateOrderStatus = async (
-  orderId: number,
-  status: string,
+  orderId: string,
+  data: UpdateOrderStatusData,
 ): Promise<Order> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const order = dummyOrders.find((o) => o.id === orderId);
-      if (order) {
-        order.status = status;
-        resolve(order);
-      } else {
-        reject(new Error("Order not found"));
-      }
-    }, 500);
-  });
+  const response = await api.patch(`/orders/${orderId}/status`, data);
+  return response.data;
 };
 
-// type definition used within this file and exported
-export interface Order {
-  id: number;
-  name: string;
-  price: number;
-  quantity: number;
-  customer: string;
-  status: string;
-  image: string;
-}
+export default {
+  createOrder,
+  getMyOrders,
+  getAllOrders,
+  updateOrderStatus,
+};
